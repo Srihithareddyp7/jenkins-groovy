@@ -1,0 +1,19 @@
+node{
+stage('SCM Checkout'){
+    git credentialsId: 'Git_Credentials' , url: 'https://github.com/Srihithareddyp7/tc_repo.git'
+}
+stage ('Build Docker Image'){
+ withDockerServer([uri: "tcp://104.43.196.239:2375"]) {
+
+    sh 'docker build -t  bwtc_app12 .'
+}
+}
+
+stage ('Run Docker Image'){
+ withDockerServer([uri: "tcp://104.43.196.239:2375"]) {
+
+    sh 'docker run  -p 80:80 -d --name test_app1  bwtc_app12'
+}
+}
+
+}
