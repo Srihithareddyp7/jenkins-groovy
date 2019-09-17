@@ -1,0 +1,30 @@
+node{
+stage('SCM Checkout'){
+   gitcredentialsId: 'Git_Credentials', url: 'https://github.com/Srihithareddyp7/tc_ignite_servicegrid.git'
+}
+stage('Maven Package'){
+dir('var/lib/jenkins/workspace/ServiceGrid-AKS/A-Ignite/'){
+   def mavenHome=tool name: 'maven' , type: 'maven'
+   def mavenCMD = "$(mavenHome)/bin/mvn"
+   sh "$(mavenCMD) clean package"
+}
+}
+stage('Build Docker Image'){
+withDockerserver([uri: "tcp://104.43.196.239:2375"]){
+   sh 'docker build -t acrhackfestrn168922534.azure.io/igniteservicegrid .'
+}
+}
+stage('Docker Push'){
+withDockerServer([uri: "tcp://104.43.196.239:2375"]) {
+withDockerRegistry([credentialsId: 'Azureid', url: 'https://acrhackfestrn168922534.azurecr.io'])
+    {
+    sh  'docker push  acrhackfestrn168922534.azurecr.io/igniteservicegrid'
+    }
+    }
+}
+    stage('AKS Deployment'){
+        sh '/usr/local/bin/helm install /root/my-newchart --wait'
+     sh 'kubectl get service'   
+    }
+
+}
